@@ -17,4 +17,6 @@ integers = tokenizer.encode(unknow_word)
 print(integers)
 string = tokenizer.decode(integers)
 print(string)
+for i in integers:
+    print(f"{i} -> {tokenizer.decode([i])}")
 
