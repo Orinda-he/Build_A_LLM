@@ -1,16 +1,19 @@
 """
-实现一个简化的因果注意力类
-
+一个高效的多头注意力类
 """
 import torch.nn as nn
 import torch
-class CausalAttention(nn.Module):
-    def __init__(self, d_in, d_out, context_length, dropout, qkv_bias=False):
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
         super().__init__()
+        assert d_out % num_heads == 0, "d_out must be divisible by num_heads"
         self.d_out = d_out
+        self.num_heads = num_heads
+        self.head_dim = d_out // num_heads
         self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
         self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
         self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.out_proj = nn.Linear(d_out, d_out)
         self.dropout = nn.Dropout(dropout)
         self.register_buffer('mask', 
                             torch.triu(torch.ones(context_length,context_length), 
@@ -19,13 +22,22 @@ class CausalAttention(nn.Module):
     def forward(self, x):
         b, num_tokens, d_in = x.shape
         keys = self.W_key(x)
+        queries = self.W_query(x)
         values = self.W_value(x)
-        query = self.W_query(x)
-        attn_scores = query @ keys.transpose(1,2) #将查询向量和健向量相乘，得到注意力分数
-        attn_scores = attn_scores.masked_fill(self.mask.bool()[:num_tokens, :num_tokens], -torch.inf)
+        keys = keys.view(b, num_tokens, self.num_heads, self.head_dim)
+        values = values.view(b, num_tokens, self.num_heads, self.head_dim)
+        queries = queries.view(b, num_tokens, self.num_heads, self.head_dim)
+        keys = keys.transpose(1,2)
+        queries = queries.transpose(1,2)
+        values = values.transpose(1,2)
+        attn_scores = queries @ keys.transpose(2,3)
+        mask_bool = self.mask.bool()[:num_tokens, :num_tokens]
+        attn_scores = attn_scores.masked_fill(mask_bool, -torch.inf)
         attn_weights = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
         attn_weights = self.dropout(attn_weights)
-        context_vec = attn_weights @ values
+        context_vec = (attn_weights @ values).transpose(1,2)
+        context_vec = context_vec.contiguous().view(b, num_tokens, self.d_out)
+        context_vec = self.out_proj(context_vec)
         return context_vec
 
 if __name__ == '__main__':
@@ -38,13 +50,11 @@ if __name__ == '__main__':
        [0.05, 0.80, 0.55]] # step     (x^6)
     )
     batch = torch.stack((inputs, inputs), dim=0) #为了简单起见，可以通过复制输入文本示例来模拟批量输入，batch.shape = [2,6,3]
-    print(batch.shape)
     torch.manual_seed(123)
-    d_in = 3
+    batch_size,context_length,d_in = batch.shape
     d_out = 2
-    context_length = batch.shape[1] # 6
-    ca = CausalAttention(d_in, d_out, context_length, 0.0)
-    context_vec = ca(batch)
+    mha = MultiHeadAttention(d_in, d_out, context_length, 0.0, num_heads=2)
+    context_vec = mha(batch)
     print(context_vec)
     print(context_vec.shape)
-
+        
