@@ -1,3 +1,6 @@
+"""
+简单自注意力机制
+"""
 import torch
 
 inputs = torch.tensor(
@@ -65,3 +68,27 @@ for i,x_i in enumerate(inputs):
     print(f"  更新后的上下文向量: {context_vec_2}")
     print()
 print("最终上下文向量:", context_vec_2)
+#以上计算输入了2 的注意力权重和上下文向量
+
+#计算所有词元的注意力权重和上下文向量
+#1、分数
+attn_scores = torch.empty((6,6))
+for i, x_i in enumerate(inputs):
+    for j, x_j in enumerate(inputs):
+        attn_scores[i,j] = torch.dot(x_i, x_j)
+print(attn_scores)
+
+#for 循环较慢，使用矩阵乘法获取相同结果
+attn_scores = inputs @ inputs.T
+print(attn_scores)
+
+
+#2、归一化
+attn_weights = torch.softmax(attn_scores, dim=1)   #dim 参数指定了softmax操作应用的维度，dim=0 表示对每列进行操作（跨行）dim=1 表示对每行进行操作（跨列）
+# 3.在注意力机制中，通常对注意力分数矩阵的行（ dim=1 ）做softmax，使得每行的和为1，表示不同位置对当前查询的注意力权重分布
+print(attn_weights)
+
+#3、上下文向量
+all_context_vecs = attn_weights @ inputs
+print(all_context_vecs)
+
