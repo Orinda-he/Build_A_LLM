@@ -40,21 +40,21 @@ class MultiHeadAttention(nn.Module):
         context_vec = self.out_proj(context_vec)
         return context_vec
 
-if __name__ == '__main__':
-    inputs = torch.tensor(
-      [[0.43, 0.15, 0.89], # Your     (x^1)
-       [0.55, 0.87, 0.66], # journey  (x^2)
-       [0.57, 0.85, 0.64], # starts   (x^3)
-       [0.22, 0.58, 0.33], # with     (x^4)
-       [0.77, 0.25, 0.10], # one      (x^5)
-       [0.05, 0.80, 0.55]] # step     (x^6)
-    )
-    batch = torch.stack((inputs, inputs), dim=0) #为了简单起见，可以通过复制输入文本示例来模拟批量输入，batch.shape = [2,6,3]
-    torch.manual_seed(123)
-    batch_size,context_length,d_in = batch.shape
-    d_out = 2
-    mha = MultiHeadAttention(d_in, d_out, context_length, 0.0, num_heads=2)
-    context_vec = mha(batch)
-    print(context_vec)
-    print(context_vec.shape)
+# if __name__ == '__main__':
+#     inputs = torch.tensor(
+#       [[0.43, 0.15, 0.89], # Your     (x^1)
+#        [0.55, 0.87, 0.66], # journey  (x^2)
+#        [0.57, 0.85, 0.64], # starts   (x^3)
+#        [0.22, 0.58, 0.33], # with     (x^4)
+#        [0.77, 0.25, 0.10], # one      (x^5)
+#        [0.05, 0.80, 0.55]] # step     (x^6)
+#     )
+#     batch = torch.stack((inputs, inputs), dim=0) #为了简单起见，可以通过复制输入文本示例来模拟批量输入，batch.shape = [2,6,3]
+#     torch.manual_seed(123)
+#     batch_size,context_length,d_in = batch.shape
+#     d_out = 2
+#     mha = MultiHeadAttention(d_in, d_out, context_length, 0.0, num_heads=2)
+#     context_vec = mha(batch)
+#     print(context_vec)
+#     print(context_vec.shape)
         
