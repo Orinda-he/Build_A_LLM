@@ -25,45 +25,45 @@ class GPTDatasetV1(Dataset):
     def __getitem__(self, idx):
         return self.input_ids[idx], self.target_ids[idx]
 
-    def create_dataloader_v1(txt, batch_size=4, max_length=256, 
-                         stride=128, shuffle=True, drop_last=True,
-                         num_workers=0):
+def create_dataloader_v1(txt, batch_size=4, max_length=256, 
+                        stride=128, shuffle=True, drop_last=True,
+                        num_workers=0):
 
-        # Initialize the tokenizer
-        tokenizer = tiktoken.get_encoding("gpt2")
+    # Initialize the tokenizer
+    tokenizer = tiktoken.get_encoding("gpt2")
 
-        # Create dataset
-        dataset = GPTDatasetV1(txt, tokenizer, max_length, stride)
+    # Create dataset
+    dataset = GPTDatasetV1(txt, tokenizer, max_length, stride)
 
-        # Create dataloader
-        dataloader = DataLoader(
-            dataset,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            drop_last=drop_last,
-            num_workers=num_workers
-        )
+    # Create dataloader
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        drop_last=drop_last,
+        num_workers=num_workers
+    )
 
-        return dataloader
+    return dataloader
 
-if __name__ == "__main__":
-    with open("the-verdict.txt", "r", encoding="utf-8") as f:
-        raw_text = f.read()
+# if __name__ == "__main__":
+#     with open("the-verdict.txt", "r", encoding="utf-8") as f:
+#         raw_text = f.read()
 
-    dataloader = GPTDatasetV1.create_dataloader_v1(
-    raw_text, batch_size=1, max_length=4, stride=1, shuffle=False
-)
+#     dataloader = create_dataloader_v1(
+#     raw_text, batch_size=1, max_length=4, stride=1, shuffle=False
+# )
 
-    data_iter = iter(dataloader)
-    first_batch = next(data_iter)
-    print(first_batch)
+#     data_iter = iter(dataloader)
+#     first_batch = next(data_iter)
+#     print(first_batch)
 
-    second_batch = next(data_iter)
-    print(second_batch)
+#     second_batch = next(data_iter)
+#     print(second_batch)
 
-    dataloader = GPTDatasetV1.create_dataloader_v1(raw_text, batch_size=8, max_length=4, stride=4, shuffle=False)
+#     dataloader = GPTDatasetV1.create_dataloader_v1(raw_text, batch_size=8, max_length=4, stride=4, shuffle=False)
 
-    data_iter = iter(dataloader)
-    inputs, targets = next(data_iter)
-    print("Inputs:\n", inputs)
-    print("\nTargets:\n", targets)
+#     data_iter = iter(dataloader)
+#     inputs, targets = next(data_iter)
+#     print("Inputs:\n", inputs)
+#     print("\nTargets:\n", targets)
